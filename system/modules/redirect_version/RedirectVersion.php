@@ -19,9 +19,9 @@ class RedirectVersion extends Controller
 
 		$alias = array_shift($fragments);
 
-		$objPages = $this->Database->prepare('SELECT COUNT(*) AS `total` FROM `tl_page` WHERE `alias`=?')->limit(1)->executeUncached($alias);
+		$objPageCount = $this->Database->prepare('SELECT COUNT(*) AS `total` FROM `tl_page` WHERE `alias`=?')->limit(1)->executeUncached($alias);
 
-		if ($objPages->total < 1)
+		if ($objPageCount->total < 1)
 		{
 			$requestAlias = $this->getRequestAlias();
 
@@ -34,7 +34,20 @@ class RedirectVersion extends Controller
 				if ($rowPage['alias'] == $alias || ($requestAlias && $rowPage['alias'] == $requestAlias))
 				{
 					$objPage = $this->Database->prepare("SELECT * FROM `tl_page` WHERE `id`=?")->limit(1)->executeUncached($objVersions->pid);
-					$this->redirect($this->generateFrontendUrl($objPage->fetchAssoc(), '/'.implode('/', $fragments), $objPage->language), 301);
+
+					if (isset($GLOBALS['TL_CONFIG']['useAutoItem']) && $GLOBALS['TL_CONFIG']['useAutoItem'] && (count($fragments) > 0) && ($fragments[1] == 'auto_item'))
+					{
+						unset($fragments[0]);
+					}
+
+					if (count($fragments) > 0)
+					{
+						$this->redirect($this->generateFrontendUrl($objPage->fetchAssoc(), '/'.implode('/', $fragments), $objPage->language), 301);
+					}
+					else
+					{
+						$this->redirect($this->generateFrontendUrl($objPage->fetchAssoc(), '', $objPage->language), 301);
+					}
 				}
 			}
 		}
