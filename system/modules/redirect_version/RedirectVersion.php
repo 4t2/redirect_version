@@ -19,34 +19,37 @@ class RedirectVersion extends Controller
 
 		$alias = array_shift($fragments);
 
-		$objPageCount = $this->Database->prepare('SELECT COUNT(*) AS `total` FROM `tl_page` WHERE `alias`=?')->limit(1)->executeUncached($alias);
-
-		if ($objPageCount->total < 1)
+		if ($alias != '')
 		{
-			$requestAlias = $this->getRequestAlias();
-
-			$objVersions = $this->Database->execute("SELECT `pid`,`data` FROM `tl_version` WHERE `fromTable`='tl_page'");
-
-			while ($objVersions->next())
+			$objPageCount = $this->Database->prepare('SELECT COUNT(*) AS `total` FROM `tl_page` WHERE `alias`=?')->limit(1)->executeUncached($alias);
+	
+			if ($objPageCount->total < 1)
 			{
-				$rowPage = unserialize($objVersions->data);
-				
-				if ($rowPage['alias'] == $alias || ($requestAlias && $rowPage['alias'] == $requestAlias))
+				$requestAlias = $this->getRequestAlias();
+	
+				$objVersions = $this->Database->execute("SELECT `pid`,`data` FROM `tl_version` WHERE `fromTable`='tl_page'");
+	
+				while ($objVersions->next())
 				{
-					$objPage = $this->Database->prepare("SELECT * FROM `tl_page` WHERE `id`=?")->limit(1)->executeUncached($objVersions->pid);
-
-					if (isset($GLOBALS['TL_CONFIG']['useAutoItem']) && $GLOBALS['TL_CONFIG']['useAutoItem'] && (count($fragments) > 0) && ($fragments[1] == 'auto_item'))
+					$rowPage = unserialize($objVersions->data);
+					
+					if ($rowPage['alias'] == $alias || ($requestAlias && $rowPage['alias'] == $requestAlias))
 					{
-						unset($fragments[0]);
-					}
-
-					if (count($fragments) > 0)
-					{
-						$this->redirect($this->generateFrontendUrl($objPage->fetchAssoc(), '/'.implode('/', $fragments), $objPage->language), 301);
-					}
-					else
-					{
-						$this->redirect($this->generateFrontendUrl($objPage->fetchAssoc(), '', $objPage->language), 301);
+						$objPage = $this->Database->prepare("SELECT * FROM `tl_page` WHERE `id`=?")->limit(1)->executeUncached($objVersions->pid);
+	
+						if (isset($GLOBALS['TL_CONFIG']['useAutoItem']) && $GLOBALS['TL_CONFIG']['useAutoItem'] && (count($fragments) > 0) && ($fragments[1] == 'auto_item'))
+						{
+							unset($fragments[0]);
+						}
+	
+						if (count($fragments) > 0)
+						{
+							$this->redirect($this->generateFrontendUrl($objPage->fetchAssoc(), '/'.implode('/', $fragments), $objPage->language), 301);
+						}
+						else
+						{
+							$this->redirect($this->generateFrontendUrl($objPage->fetchAssoc(), '', $objPage->language), 301);
+						}
 					}
 				}
 			}
