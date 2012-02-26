@@ -19,7 +19,7 @@ class RedirectVersion extends Controller
 
 		$alias = array_shift($fragments);
 
-		if ($alias != '')
+		if (!is_null($alias) && strlen($alias))
 		{
 			$objPageCount = $this->Database->prepare('SELECT COUNT(*) AS `total` FROM `tl_page` WHERE `alias`=?')->limit(1)->executeUncached($alias);
 	
